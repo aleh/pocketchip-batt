@@ -18,7 +18,7 @@ those power notification scritps.
 
 Make sure you have git and gcc installed, then clone the repo and build/install it: 
 
-	git clone git@github.com:aleh/pocketchip-batt.git
+	git clone https://github.com/aleh/pocketchip-batt.git
 	cd pocketchip-batt
 	sudo make install
 
