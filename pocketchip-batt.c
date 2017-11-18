@@ -75,9 +75,12 @@ int main() {
 	}
 	voltage = (((uint16_t)buf[0] << 4) | (buf[1] & 0x0F)) * 1.1;
 
+	// Not printing these params anymore as instead of replacing the battery.sh I've decided to replace pocketchip-batt and extra output will cause more logging by systemd.
+	/*~
 	// Let's print to stdout just in case this script is used instead of battery.sh .
 	printf("CHARG_IND=%d\n", charging);
 	printf("Battery voltage = %.0fmV\n", voltage);
+	*/
 
 	//
  	// And this is what the pocket-batt actually does (except for averaging).
