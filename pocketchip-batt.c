@@ -1,3 +1,8 @@
+/*
+ * A lighter replacement for pocketchip-batt script in PocketCHIP. See the README.md.
+ * Copyright (C) Aleh Dzenisiuk, 2017. http://github.com/aleh/pocketchip-batt
+ */
+
 #include <stdio.h>
 #include <stdint.h>
 #include <stdlib.h>
@@ -70,23 +75,35 @@ int main() {
 	}
 	voltage = (((uint16_t)buf[0] << 4) | (buf[1] & 0x0F)) * 1.1;
 
-	// Let's print to stdout just in case old pocket-batt calls us.
+	// Let's print to stdout just in case this script is used instead of battery.sh .
 	printf("CHARG_IND=%d\n", charging);
 	printf("Battery voltage = %.0fmV\n", voltage);
 
- 	// Let's go ahead and replace the functionality of pocketchip-batt here as well, 
-	// which currently is writing the voltage and charging status into two files.
+	//
+ 	// And this is what the pocket-batt actually does (except for averaging).
+	//
+
 	FILE *charging_file = fopen("/usr/lib/pocketchip-batt/charging", "w");
-	fprintf(charging_file, "%d", charging);
-	fclose(charging_file);
+	if (charging_file == NULL) {
+		perror("Could not update charging file");
+	} else {
+		fprintf(charging_file, "%d\n", charging);
+		fclose(charging_file);
+	}
 
-	// It averages the voltage as well, but I don't want to bother.
+	// The original script was averaging the voltage as well, but I don't want to bother.
 	FILE *voltage_file = fopen("/usr/lib/pocketchip-batt/voltage", "w");
-	fprintf(voltage_file, "%.0f", voltage);
-	fclose(voltage_file);
+	if (voltage_file == NULL) {
+		perror("Could not update the voltage file");
+	} else {
+		fprintf(voltage_file, "%.0f\n", voltage);
+		fclose(voltage_file);
+	}
 
-	// Done!
-	close(i2c_device);	
+	close(i2c_device);
+
+	return 0;
 }
+
 
 // vim: ts=4:sw=4

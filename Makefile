@@ -1,9 +1,10 @@
 
 
-battery.sh: battery.c
-	gcc battery.c -o battery.sh
+pocketchip-batt: pocketchip-batt.c
+	gcc $< -o $@
 
-install: battery.sh
-	cp battery.sh /usr/bin
+install: pocketchip-batt
+	cp $< /usr/sbin/pocketchip-batt
 
 .PHONY: install
+
