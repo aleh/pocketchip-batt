@@ -10,13 +10,13 @@ install: pocketchip-batt
 	systemctl disable pocketchip-warn05.timer
 	systemctl disable pocketchip-warn15.timer
 	
-	cp $< /usr/sbin/pocketchip-batt
+	cp --backup $< /usr/sbin/pocketchip-batt
 	
 	# Need to make sure our temporary files with battery status will be on a temp FS.
 	rm -rf /usr/lib/pocketchip-batt
 	ln -s /run/pocketchip-batt /usr/lib/pocketchip-batt
 	
-	# OK, enabling it back
+	# OK, enabling our service back, the rest should be disabled.
 	systemctl enable pocketchip-batt.timer
 
 .PHONY: install
