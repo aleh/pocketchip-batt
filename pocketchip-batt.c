@@ -10,13 +10,20 @@
 #include <errno.h>
 
 #include <linux/types.h>
-#include <linux/i2c.h>
 #include <linux/i2c-dev.h>
 
 #include <sys/ioctl.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
+
+#include <X11/Xos.h>
+#include <X11/Xfuncs.h>
+#include <X11/Xlib.h>
+#include <X11/keysym.h>
+#include <X11/Xproto.h>
+#include <X11/Xutil.h>
+#include <X11/extensions/dpms.h>
 
 int i2c_device;
 
@@ -93,14 +100,101 @@ static void remove_fs_flag(const char *name) {
 	unlink(name);
 }
 
-static void shell(const char *cmd) {
+static int shell(const char *cmd) {
 	int status = system(cmd);
 	if (status != 0) {
 		fprintf(stderr, "Shell command failed (%d): '%s'\n", status, cmd);
 	}
+	return status;
 }
 
-int main() {
+static void init_xmodmap_if_needed() {
+
+	static int initialized = 0;
+
+	if (initialized)
+		return;
+
+	seteuid(1000);
+	if (shell("DISPLAY=:0 XAUTHORITY=/home/chip/.Xauthority xmodmap /home/chip/.Xmodmap") != 0) {
+		initialized = 1;
+	}
+}
+
+static int get_backlight_level() {
+
+	int result = -1;	
+	FILE *f = fopen("/sys/class/backlight/backlight/brightness", "r");
+	if (f)	{
+		fscanf(f, "%d", &result);
+	}
+	fclose(f);
+
+	return result;
+}
+
+static void set_backlight_level(int level) {
+
+	FILE *f = fopen("/sys/class/backlight/backlight/brightness", "w");
+	if (f)	{
+		fprintf(f, "%d\n", level);
+	}
+	fclose(f);
+}
+
+static void check_backlight() {
+
+	seteuid(1000);
+
+	Display *dpy = XOpenDisplay(":0");
+	if (dpy == NULL) {
+		fprintf(stderr, "Could not open the display\n");
+		return;
+	}
+
+	int scr = DefaultScreen(dpy);
+
+	BOOL onoff = 0;
+	CARD16 state;
+	if (!DPMSInfo(dpy, &state, &onoff)) {
+		fprintf(stderr, "Could not get DPMS info\n");
+		return;
+	}
+
+	//~ printf("DPMS on: %d, state: %d\n", (int)onoff, (int)state);
+
+	int display_off = onoff && (state != DPMSModeOn);
+	//~ printf("Display off: %d\n", display_off);
+
+	seteuid(0);
+	static int disabled_backlight = 0;
+	static int backlight_level;
+	if (display_off) {
+		if (!disabled_backlight) {
+			backlight_level = get_backlight_level();
+			if (backlight_level > 0) {
+				set_backlight_level(0);
+				disabled_backlight = 1;
+			} else {
+				printf("Backlight level: %d\n", backlight_level);
+			} 
+		}
+	} else {
+		if (disabled_backlight) {
+			set_backlight_level(backlight_level);
+			disabled_backlight = 0;
+		} else if (get_backlight_level() == 0) {
+			// This is just in case the daemon was started later for some reason.
+			set_backlight_level(backlight_level > 0 ? backlight_level : 4);
+		}
+	}
+
+	XCloseDisplay(dpy);
+}
+
+static int check_battery() {
+
+	seteuid(0);
 
 	int charging;
 	int voltage;
@@ -172,6 +266,26 @@ int main() {
 	// pocketchip-warn15
 	if (charging || voltage > 3550) {
 		remove_fs_flag(warn15_flag);
+	}
+}
+
+int main(int argc, char **argv) {
+
+
+	int daemon = (argc >= 2 && strcmp(argv[1], "daemon") == 0);
+
+	while (1) {
+
+		init_xmodmap_if_needed();
+
+		check_battery();
+
+		if (!daemon)
+			return 0;
+
+		check_backlight();
+		
+		usleep(5 * 1000000);	
 	}
 
 	return 0;

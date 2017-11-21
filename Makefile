@@ -1,7 +1,7 @@
 
 
 pocketchip-batt: pocketchip-batt.c
-	gcc $< -o $@
+	gcc $< -lX11 -lXext -o $@
 
 install: pocketchip-batt
 	# Will reenable pocketchip-batt after replacing the script, but the rest should be disabled, out service does their job.
