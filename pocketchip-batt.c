@@ -93,6 +93,13 @@ static void remove_fs_flag(const char *name) {
 	unlink(name);
 }
 
+static void shell(const char *cmd) {
+	int status = system(cmd);
+	if (status != 0) {
+		fprintf(stderr, "Shell command failed (%d): '%s'\n", status, cmd);
+	}
+}
+
 int main() {
 
 	int charging;
@@ -145,16 +152,16 @@ int main() {
 		mkdir("/home/chip/.pocketchip-batt", 0777);	
 		if (voltage < 3300) {
 			// pocketchip-off00
-			system("DISPLAY=:0 pocket-off");
+			shell("sudo -u chip DISPLAY=:0 pocket-off");
 		} else if (voltage < 3375) {
 			// pocketchip-warn05
 			if (!has_fs_flag(warn05_flag)) {
-				system("DISPLAY=:0 pocket-exit-5");
+				shell("sudo -u chip DISPLAY=:0 pocket-exit-5");
 			}
 		} else if (voltage < 3500) {
 			// pocketchip-warn15
 			if (!has_fs_flag(warn15_flag)) {
-				system("DISPLAY=:0 pocket-exit-15");
+				shell("sudo -u chip DISPLAY=:0 pocket-exit-15");
 			}
 		}
 	}
