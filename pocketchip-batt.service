@@ -1,0 +1,6 @@
+[Unit]
+Description=Handle battery, backlight and PocketCHIP keymap
+
+[Service]
+Type=oneshot
+ExecStart=/usr/sbin/pocketchip-batt daemon

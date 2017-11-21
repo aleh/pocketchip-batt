@@ -1,0 +1,9 @@
+[Unit]
+Description=Handle battery, backlight and PocketCHIP keymap
+
+[Timer]
+OnBootSec=2sec
+# OnUnitActiveSec=2sec
+
+[Install]
+WantedBy=timers.target
