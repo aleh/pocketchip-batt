@@ -18,7 +18,7 @@ install: pocketchip-batt pocketchip-batt.service pocketchip-batt.timer
 	mv -n /etc/systemd/system/pocketchip-batt.service /etc/systemd/system/pocketchip-batt.service~old
 	mv -n /etc/systemd/system/pocketchip-batt.timer /etc/systemd/system/pocketchip-batt.timer~old	
 	
-	mv -n /usr/sbin/pocketchip-load /usr/sbin/pocketchip-load~old
+	-mv -n /usr/sbin/pocketchip-load /usr/sbin/pocketchip-load~old
 	
 	cp ./pocketchip-batt.service /etc/systemd/system/
 	cp ./pocketchip-batt.timer /etc/systemd/system/

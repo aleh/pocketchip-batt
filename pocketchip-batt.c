@@ -112,12 +112,14 @@ static void init_xmodmap_if_needed() {
 
 	static int initialized = 0;
 
-	if (initialized)
+	// Well, let's do this 3 times just in case. Does not work once for some reason, perhaps too early.
+	if (initialized >= 3)
 		return;
 
 	seteuid(1000);
-	if (shell("DISPLAY=:0 XAUTHORITY=/home/chip/.Xauthority xmodmap /home/chip/.Xmodmap") != 0) {
-		initialized = 1;
+	if (shell("DISPLAY=:0 XAUTHORITY=/home/chip/.Xauthority xmodmap /home/chip/.Xmodmap") == 0) {
+		printf("Successfully initialized .Xmodmap\n");
+		initialized++;
 	}
 }
 
@@ -156,15 +158,14 @@ static void check_backlight() {
 
 	BOOL onoff = 0;
 	CARD16 state;
-	if (!DPMSInfo(dpy, &state, &onoff)) {
+	BOOL got_info = DPMSInfo(dpy, &state, &onoff);
+	XCloseDisplay(dpy);
+	if (!got_info) {
 		fprintf(stderr, "Could not get DPMS info\n");
 		return;
 	}
 
-	//~ printf("DPMS on: %d, state: %d\n", (int)onoff, (int)state);
-
 	int display_off = onoff && (state != DPMSModeOn);
-	//~ printf("Display off: %d\n", display_off);
 
 	seteuid(0);
 	static int disabled_backlight = 0;
@@ -175,8 +176,6 @@ static void check_backlight() {
 			if (backlight_level > 0) {
 				set_backlight_level(0);
 				disabled_backlight = 1;
-			} else {
-				printf("Backlight level: %d\n", backlight_level);
 			} 
 		}
 	} else {
@@ -189,7 +188,6 @@ static void check_backlight() {
 		}
 	}
 
-	XCloseDisplay(dpy);
 }
 
 static int check_battery() {
@@ -270,7 +268,6 @@ static int check_battery() {
 }
 
 int main(int argc, char **argv) {
-
 
 	int daemon = (argc >= 2 && strcmp(argv[1], "daemon") == 0);
 
