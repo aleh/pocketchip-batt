@@ -14,6 +14,8 @@ functionality is still available with lesser penalty to the CPU resources. It al
 (`pocketchip-off00`, `pocketchip-war05` and `pocketchip-warn15`) that were checking the battery levels and calling 
 those power notification scritps.
 
+In addition to that the newer version of the script replaces the functionality of the `pocketchip-load` service, which was responsible for proper key mapping on startup and display backlight deactivation when the system turns the display off.  
+
 ## Installation
 
 Make sure you have git and gcc installed, then clone the repo and build/install it: 
@@ -33,7 +35,6 @@ If you want to undo the changes:
 ## TODO
 
 - `pocket-home` appears to be constantly consuming up to 1-4% of CPU, must be polling something fairly hard, would be great to patch it;
-- `pocketchip-load` is sometimes active, its functionality can go into this script as well;
 - `ubihealthd` seems to be causing issues on 4.4;
 - we should patch `rsyslogd.conf` with our Makefile as described here: [https://www.raspberrypi.org/forums/viewtopic.php?f=63&t=134971#p898539];
 - the emulator itself can be improved to sync audio a bit nicer, here is my attempt: [https://github.com/aleh/VisualBoyAdvance]. 
