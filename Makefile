@@ -1,34 +1,27 @@
 
 
-pocketchip-batt: pocketchip-batt.c
+pocketchip-one: pocketchip-one.c
 	gcc $< -lX11 -lXext -o $@
 
-install: pocketchip-batt pocketchip-batt.service pocketchip-batt.timer
-	# Will reenable pocketchip-batt after replacing the script, but the rest should be disabled, out service does their job.
+install: pocketchip-one pocketchip-one.service
+	
 	systemctl disable pocketchip-batt.timer
 	systemctl disable pocketchip-off00.timer
 	systemctl disable pocketchip-warn05.timer
 	systemctl disable pocketchip-warn15.timer
 	systemctl disable pocketchip-load.timer
 	
-	if [[ -e /usr/sbin/pocketchip-batt ]] ; then mv -n /usr/sbin/pocketchip-batt /usr/sbin/pocketchip-batt~old ; fi
-	rm -f /usr/sbin/pocketchip-batt
-	cp ./pocketchip-batt /usr/sbin/pocketchip-batt
-	
-	mv -n /etc/systemd/system/pocketchip-batt.service /etc/systemd/system/pocketchip-batt.service~old
-	mv -n /etc/systemd/system/pocketchip-batt.timer /etc/systemd/system/pocketchip-batt.timer~old	
-	
-	-mv -n /usr/sbin/pocketchip-load /usr/sbin/pocketchip-load~old
-	
-	cp ./pocketchip-batt.service /etc/systemd/system/
-	cp ./pocketchip-batt.timer /etc/systemd/system/
+	cp -f ./pocketchip-one /usr/sbin/pocketchip-one
+	cp -f ./pocketchip-one.service /etc/systemd/system/
 	
 	# Need to make sure our temporary files with battery status will be on a temp FS.
 	-rm -rf /usr/lib/pocketchip-batt
 	ln -s /run/pocketchip-batt /usr/lib/pocketchip-batt
 	
-	# OK, enabling our service back, the rest should be disabled.
-	systemctl enable pocketchip-batt.timer
+	# Enabling only our "one" service, the rest should be disabled.
+	systemctl daemon-reload
+	systemctl enable pocketchip-one.service
+	systemctl reload-or-restart pocketchip-one.service
 
 uninstall:
 	systemctl disable pocketchip-batt.timer
