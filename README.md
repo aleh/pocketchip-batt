@@ -16,6 +16,10 @@ those power notification scritps.
 
 In addition to that the newer version of the script replaces the functionality of the `pocketchip-load` service, which was responsible for proper key mapping on startup and display backlight deactivation when the system turns the display off.  
 
+Another addition is that this service reads "fuel gauge" register from the battery controller and places its value 
+(in percents) to `/usr/lib/pocketchip-batt/gauge`. This allows to know battery level with much better precision than
+linearly mapping the current voltage into the min/max range as the home screen does it.
+
 ## Installation
 
 Make sure you have git and gcc installed, then clone the repo and build/install it: 

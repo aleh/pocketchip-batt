@@ -1,44 +1,34 @@
-
-
 pocketchip-one: pocketchip-one.c
 	gcc $< -lX11 -lXext -o $@
 
-install: pocketchip-one pocketchip-one.service
+install: pocketchip-one pocketchip-one.service 
 	
-	systemctl disable pocketchip-batt.timer
-	systemctl disable pocketchip-off00.timer
-	systemctl disable pocketchip-warn05.timer
-	systemctl disable pocketchip-warn15.timer
-	systemctl disable pocketchip-load.timer
-	
-	cp -f ./pocketchip-one /usr/sbin/pocketchip-one
-	cp -f ./pocketchip-one.service /etc/systemd/system/
-	
-	# Need to make sure our temporary files with battery status will be on a temp FS.
+	# Let's disable the services that ours is replacing.
+	for i in batt off00 warn05 warn15 load ; do echo $$i ; systemctl disable pocketchip-$$i.timer ; systemctl stop pocketchip-$$i.service ; done
+
+	# Make sure battery status files are created on a tmpfs and not touching the flash.
 	-rm -rf /usr/lib/pocketchip-batt
 	ln -s /run/pocketchip-batt /usr/lib/pocketchip-batt
 	
-	# Enabling only our "one" service, the rest should be disabled.
+	# Copy and enable our service.	
+	cp -f ./pocketchip-one /usr/sbin/pocketchip-one
+	cp -f ./pocketchip-one.service /etc/systemd/system/
+	
 	systemctl daemon-reload
 	systemctl enable pocketchip-one.service
 	systemctl reload-or-restart pocketchip-one.service
 
 uninstall:
-	systemctl disable pocketchip-batt.timer
+	# Stop and disable our service.
+	systemctl disable pocketchip-one.service
+	systemctl stop pocketchip-one.service
 	
-	mv /etc/systemd/system/pocketchip-batt.timer~old /etc/systemd/system/pocketchip-batt.timer
-	mv /etc/systemd/system/pocketchip-batt.service~old /etc/systemd/system/pocketchip-batt.service
-	
-	mv /usr/sbin/pocketchip-load~old /usr/sbin/pocketchip-load
-	
-	-mv /usr/sbin/pocketchip-batt~old /usr/sbin/pocketchip-batt
+	# Make a normal directory for the battery status files as it was before.
 	-rm -rf /usr/lib/pocketchip-batt
 	-mkdir /usr/lib/pocketchip-batt
-	systemctl enable pocketchip-batt.timer
-	systemctl enable pocketchip-off00.timer
-	systemctl enable pocketchip-warn05.timer
-	systemctl enable pocketchip-warn15.timer
-	systemctl enable pocketchip-load.service
+	
+	# Enable the pocketchip-* services back.
+	for i in batt off00 warn05 warn15 load ; do echo $$i ; systemctl enable pocketchip-$$i.timer ; systemctl start pocketchip-$$i.service ; done
 
 .PHONY: install uninstall
 
