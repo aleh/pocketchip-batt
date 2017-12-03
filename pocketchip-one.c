@@ -5,24 +5,12 @@
 
 #include <stdio.h>
 #include <stdint.h>
-#include <stdlib.h>
-#include <err.h>
 #include <errno.h>
 
-#include <linux/types.h>
 #include <linux/i2c-dev.h>
-
-#include <sys/ioctl.h>
-#include <sys/types.h>
-#include <sys/stat.h>
 #include <fcntl.h>
 
-#include <X11/Xos.h>
-#include <X11/Xfuncs.h>
 #include <X11/Xlib.h>
-#include <X11/keysym.h>
-#include <X11/Xproto.h>
-#include <X11/Xutil.h>
 #include <X11/extensions/dpms.h>
 
 static int _i2c_device = 0;
@@ -76,35 +64,50 @@ static int battery_read(int *charging, int *voltage, int *gauge) {
 		if (_battery_open() != 0)
 			break;
 		
-		// The comment in the original battery.sh for this was "force ADC enable for battery voltage and current".
-		if (!_i2c_write((const uint8_t[]){ 0x82, 0xC3 }, 2)) {
-			perror("Could not enable the ADC");
-			break;
-		}
-
 		uint8_t buf[8];
 		if (!_i2c_read_reg(0x01, buf, 1)) {
 			perror("Could not read charging status");
 			break;
 		}
 		*charging = (buf[0] >> 6) & 1; 
-		
-		if (!_i2c_read_reg(0x78, buf, 1)) {
-			perror("Could not read the voltage (MSB)");
-			break;
-		}
-		
-		if (!_i2c_read_reg(0x79, buf + 1, 1)) {
-			perror("Could not read the voltage (LSB)");
-			break;
-		}
-		*voltage = (((uint16_t)buf[0] << 4) | (buf[1] & 0x0F)) * 1.1;
-
+	
 		if (!_i2c_read_reg(0xB9, buf + 2, 1)) {
 			perror("Could not read fuel gauge");
 			break;
 		}
 		*gauge = buf[2];
+		
+		if (0) {
+
+			// There is little sense in reading the actual voltage, we are not doing it anymore, see below.
+			//  The old code here is for history/experiments.
+
+			// The comment in the original battery.sh for this was "force ADC enable for battery voltage and current".
+			if (!_i2c_write((const uint8_t[]){ 0x82, 0xC3 }, 2)) {
+				perror("Could not enable the ADC");
+				break;
+			}
+
+			if (!_i2c_read_reg(0x78, buf, 1)) {
+				perror("Could not read the voltage (MSB)");
+				break;
+			}
+			
+			if (!_i2c_read_reg(0x79, buf + 1, 1)) {
+				perror("Could not read the voltage (LSB)");
+				break;
+			}
+			*voltage = (((uint16_t)buf[0] << 4) | (buf[1] & 0x0F)) * 1.1;
+		
+		} else {
+
+			// So, instead of reading the voltage and then letting pocket-home (incorrectly) convert it to battery level, 
+			// let's set the voltage based on the fuel gauge we've just read above.
+			// These are the values for 0% and 100% that pocket-home uses, let's map our fuel gauge into this range.
+			const int max_voltage = 4250;
+			const int min_voltage = 3275;
+			*voltage = min_voltage + (max_voltage - min_voltage) * (*gauge) / 100;
+		}
 
 		result = 0;
 
