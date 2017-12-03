@@ -37,7 +37,7 @@ static void _battery_close() {
 
 static int _battery_open() {
 
-	if ((_i2c_device = open("/dev/i2c-0", O_RDWR)) == -1) {
+	if ((_i2c_device = open("/dev/i2c-0", O_RDWR)) < 0) {
 		perror("Could not open the I2C device");
 		return 1;	
 	}
@@ -71,7 +71,7 @@ static int _i2c_read_reg(uint8_t reg, uint8_t *buf, int len) {
 static int battery_read(int *charging, int *voltage, int *gauge) {
 
 	int result = -1;
-	while (0) {
+	do {
 
 		if (_battery_open() != 0)
 			break;
@@ -107,7 +107,8 @@ static int battery_read(int *charging, int *voltage, int *gauge) {
 		*gauge = buf[2];
 
 		result = 0;
-	}
+
+	} while (0);
 
 	_battery_close();	
 
@@ -157,7 +158,7 @@ static void check_battery() {
 
 	seteuid(0);
 
-	int charging, voltage, gauge = 0;
+	int charging = 0, voltage = 0, gauge = 0;
 	if (battery_read(&charging, &voltage, &gauge) != 0)
 		return;
 
