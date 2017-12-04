@@ -204,20 +204,22 @@ static void check_battery() {
 	// And it looks like it is not hard to do what the rest of the scripts were doing
 	//
 
-	// I am not sure who else is using these flag files, otherwise would put them to /run as well.
+	// Below we were comparing voltages: 3300 for off00, 3375 for warn05 (3400 to reset it), 3500 for warn15 (3550 to reset it), but it's much better to use the fuel gauge, let's use it.
+	
+	// I am not sure who else is using these flag files, otherwise would put them to /run or just had them here as we are a daemon anyway.
 	const char warn05_flag[] = "/home/chip/.pocketchip-batt/warn05";
 	const char warn15_flag[] = "/home/chip/.pocketchip-batt/warn15";
 	if (!charging) {
 		mkdir("/home/chip/.pocketchip-batt", 0777);	
-		if (voltage < 3300) {
+		if (gauge <= 1) {
 			// pocketchip-off00
 			shell("sudo -u chip DISPLAY=:0 pocket-off");
-		} else if (voltage < 3375) {
+		} else if (gauge <= 5) {
 			// pocketchip-warn05
 			if (!has_fs_flag(warn05_flag)) {
 				shell("sudo -u chip DISPLAY=:0 pocket-exit-5");
 			}
-		} else if (voltage < 3500) {
+		} else if (gauge <= 15) {
 			// pocketchip-warn15
 			if (!has_fs_flag(warn15_flag)) {
 				shell("sudo -u chip DISPLAY=:0 pocket-exit-15");
@@ -225,11 +227,11 @@ static void check_battery() {
 		}
 	}
 	// pocketchip-warn05
-	if (charging || voltage > 3400) {
+	if (charging || gauge > 7) {
 		remove_fs_flag(warn05_flag);
 	}
 	// pocketchip-warn15
-	if (charging || voltage > 3550) {
+	if (charging || gauge > 20) {
 		remove_fs_flag(warn15_flag);
 	}
 }
