@@ -30,7 +30,7 @@ Here is the comparison of fuel gauge reading (blue) vs the value calculated by l
 the min/max range (green). The Pocket CHIP was left sitting and running the same fairly heavy program, 
 i.e. the load was more or less constant.
 
-![Fuel Gauge vs Voltage](Fuel Gauge vs Voltage.png)
+![Fuel Gauge vs Voltage Graph](graph.png)
 
 Since nobody needs the real voltage and because fuel gauge is so much better I've decided to stop reading 
 the actual voltage and use the fuel gauge to calculate "virtual" voltage which after mapping by the home screen will
