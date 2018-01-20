@@ -42,6 +42,7 @@ become a fuel gauge effectively improving the battery indicator.
 
 Make sure you have git and gcc installed, then clone the repo and build/install it: 
 
+	sudo apt-get install libx11-dev libxtst-dev
 	git clone https://github.com/aleh/pocketchip-batt.git
 	cd pocketchip-batt
 	sudo make install
