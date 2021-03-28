@@ -36,6 +36,10 @@ Since nobody needs the real voltage and because fuel gauge is so much better I'v
 the actual voltage and use the fuel gauge to calculate "virtual" voltage which after mapping by the home screen will
 become a fuel gauge effectively improving the battery indicator.
 
+`ubihealthd` causes additional stutter on 4.4, this appears to be due to excessive logging.
+The modified ubihealthd.service lowers the logging level and increases niceness of the process,
+mitigating the random audio stutter further.
+
 ## Installation
 
 (If you have the older version of the script, then first uninstall it using the original sources.)
@@ -59,8 +63,6 @@ If you want to undo the changes:
 
  - `pocket-home` appears to be constantly consuming up to 1-4% of CPU, must be polling something fairly hard, would be great to patch it. 
    I've personallly moved to JWM, see my config [here](https://github.com/aleh/pocketchip-jwmrc).
-
- - `ubihealthd` seems to be causing additional stutter  on 4.4;
 
  - we should patch `rsyslogd.conf` with our Makefile as described [here](https://www.raspberrypi.org/forums/viewtopic.php?f=63&t=134971#p898539);
 
