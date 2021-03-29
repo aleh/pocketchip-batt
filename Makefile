@@ -18,6 +18,10 @@ install: pocketchip-one pocketchip-one.service
 	systemctl enable pocketchip-one.service
 	systemctl reload-or-restart pocketchip-one.service
 
+	# Copy and enable our polite NAND service.
+	cp -f ./ubihealthd.service /etc/systemd/system/
+	systemctl reload-or-restart ubihealthd.service
+
 uninstall:
 	# Stop and disable our service.
 	systemctl disable pocketchip-one.service
